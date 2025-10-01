@@ -358,6 +358,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         offset + cursorOffset,
         cursorType: terminalViewport.cursor!.type,
         hasFocus: _focusNode.hasFocus,
+        doubleWidth: terminalViewport.cursorOnDoubleWidth,
       );
     }
   }
@@ -440,6 +441,7 @@ class TerminalPainter {
     Canvas canvas,
     Offset offset, {
     required CursorType cursorType,
+    required bool doubleWidth,
     bool hasFocus = true,
   }) {
     final paint = Paint()
@@ -492,11 +494,11 @@ class TerminalPainter {
 
   @pragma('vm:prefer-inline')
   void paintCell(Canvas canvas, Offset offset, TerminalCell cell) {
-    if (cell.fg == noPaintCodeUnit) return;
+    if (cell.fg == graphemeCodeUnit) return;
     late final String grapheme;
     bool doubleWidth = false;
     if (cell.grapheme != null) {
-      if(cell.grapheme!.isSecond) return;
+      if (cell.grapheme!.isSecond) return;
       doubleWidth = cell.grapheme!.width == 2;
       grapheme = cell.grapheme!.data;
     } else {

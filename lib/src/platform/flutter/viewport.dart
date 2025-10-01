@@ -22,6 +22,8 @@ class FlutterTerminalViewport extends BufferTerminalViewport {
     onChanged();
   }
 
+
+
   /// TODO: grapheme and newGrapheme needed in cell to actually display everything correctly
   @override
   void updateScreen() {

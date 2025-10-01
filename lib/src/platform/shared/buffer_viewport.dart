@@ -12,9 +12,9 @@ const int _bottomBorderMask = 1 << 60;
 const int _borderDrawIdMask = ~(0xF << 60);
 
 /// marks the foreground that it should not be painted
-const noPaintCodeUnit = 0;
+const graphemeCodeUnit = 0;
 Foreground noPaintFg(ForegroundStyle style) =>
-    Foreground(style: style, codeUnit: noPaintCodeUnit);
+    Foreground(style: style, codeUnit: graphemeCodeUnit);
 
 class Grapheme {
   final String data;
@@ -39,7 +39,7 @@ class TerminalCell {
   void drawGrapheme(Grapheme? grapheme, ForegroundStyle fg, Color? bg) {
     draw(
       grapheme != null
-          ? Foreground(style: fg, codeUnit: noPaintCodeUnit)
+          ? Foreground(style: fg, codeUnit: graphemeCodeUnit)
           : Foreground(style: fg),
       bg,
     );
@@ -140,6 +140,14 @@ abstract class BufferTerminalViewport extends TerminalViewport {
 
   List<TerminalCell> getRow(int y) => _data[y];
   TerminalCell getCell(Position position) => _data[position.y][position.x];
+
+  bool get cursorOnDoubleWidth {
+    assert(cursor != null);
+    final cell = getCell(cursor!.position);
+    return cell.grapheme != null &&
+        !cell.grapheme!.isSecond &&
+        cell.fg.codeUnit == graphemeCodeUnit;
+  }
 
   void resizeBuffer() {
     if (_dataSize.height < size.height) {
@@ -364,14 +372,14 @@ abstract class BufferTerminalViewport extends TerminalViewport {
       position = position - e1;
       cell = getCell(position);
     }
-    if ((cell.newFg != null && cell.newFg?.codeUnit != noPaintCodeUnit) ||
+    if ((cell.newFg != null && cell.newFg?.codeUnit != graphemeCodeUnit) ||
         (grapheme.width == 2 &&
             getCell(position + e1).newFg != null &&
-            getCell(position + e1).newFg?.codeUnit != noPaintCodeUnit)) {
+            getCell(position + e1).newFg?.codeUnit != graphemeCodeUnit)) {
       cell.changed = true;
       cell.grapheme = null;
       final fg = cell.newFg ?? cell.fg;
-      if (fg.codeUnit == noPaintCodeUnit) {
+      if (fg.codeUnit == graphemeCodeUnit) {
         cell.newFg = Foreground();
       }
       if (grapheme.width == 2) {
@@ -379,7 +387,7 @@ abstract class BufferTerminalViewport extends TerminalViewport {
         cell.changed = true;
         cell.grapheme = null;
         final fg = cell.newFg ?? cell.fg;
-        if (fg.codeUnit == noPaintCodeUnit) {
+        if (fg.codeUnit == graphemeCodeUnit) {
           cell.newFg = Foreground();
         }
       }
