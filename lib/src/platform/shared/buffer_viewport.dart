@@ -138,6 +138,10 @@ abstract class BufferTerminalViewport extends TerminalViewport {
     return changed;
   }
 
+  void setRowChanged(int row) {
+    _changeList[row]= false;
+  }
+
   List<TerminalCell> getRow(int y) => _data[y];
   TerminalCell getCell(Position position) => _data[position.y][position.x];
 

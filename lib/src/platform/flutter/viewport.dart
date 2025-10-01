@@ -23,7 +23,6 @@ class FlutterTerminalViewport extends BufferTerminalViewport {
   }
 
 
-
   /// TODO: grapheme and newGrapheme needed in cell to actually display everything correctly
   @override
   void updateScreen() {
@@ -39,6 +38,7 @@ class FlutterTerminalViewport extends BufferTerminalViewport {
             if (!grapheme.isSecond) {
               x += grapheme.width - 1;
             }
+            setRowChanged(y);
             continue;
           }
           if (cell.calculateDifference()) {
