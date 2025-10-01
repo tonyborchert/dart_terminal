@@ -1,6 +1,7 @@
 // Project imports:
 
 // Project imports:
+import 'primitives.dart';
 import 'geometry.dart';
 import 'terminal.dart';
 

@@ -28,7 +28,7 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
       _controller.setCursorPosition(_cursorPosition);
       // should also be set explicitly by controller?
       _cursorHidden = false;
-      _cursorBlinking = true;
+      _cursorAppearance = (CursorType.block, true);
     }
     io.stdout.write(ansi_codes.resetAllFormats);
     currentFg = const ForegroundStyle();
@@ -54,30 +54,30 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
   @override
   CursorState? get cursor => _cursorHidden
       ? null
-      : CursorState(position: _cursorPosition!, blinking: _cursorBlinking);
-  late bool _cursorBlinking;
+      : CursorState(position: _cursorPosition!, blinking: _cursorAppearance.$2);
+  late (CursorType, bool) _cursorAppearance; // (type, blinking)
   late bool _cursorHidden;
   late Position _cursorPosition;
 
   @override
   set cursor(CursorState? cursor) {
+    if (_cursorHidden != (cursor == null)) {
+      _controller.changeCursorVisibility(hiding: (cursor == null));
+      _cursorHidden = (cursor == null);
+    }
     if (cursor != null) {
-      if (cursor.blinking != _cursorBlinking) {
-        _controller.changeCursorBlinking(blinking: cursor.blinking);
-        _cursorBlinking = cursor.blinking;
+      if ((cursor.type, cursor.blinking) != _cursorAppearance) {
+        _cursorAppearance = (cursor.type, cursor.blinking);
+        _controller.changeCursorAppearance(
+          blinking: cursor.blinking,
+          cursorType: cursor.type,
+        );
       }
       if (cursor.position != _cursorPosition) {
         _controller.setCursorPositionRelative(_cursorPosition, cursor.position);
         _cursorPosition = cursor.position;
       }
-      if (_cursorHidden) {
-        _controller.changeCursorVisibility(hiding: false);
-        _cursorHidden = false;
-      }
       _constrainCursorPosition();
-    } else if (!_cursorHidden) {
-      _controller.changeCursorVisibility(hiding: true);
-      _cursorHidden = true;
     }
   }
 

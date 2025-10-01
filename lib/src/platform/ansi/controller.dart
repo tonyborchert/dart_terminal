@@ -38,12 +38,16 @@ class AnsiTerminalController {
   /// Controls cursor blinking state.
   ///
   /// Not supported by all terminals.
-  void changeCursorBlinking({required bool blinking}) {
-    if (blinking) {
-      io.stdout.write(ansi_codes.enableCursorBlink);
-    } else {
-      io.stdout.write(ansi_codes.disableCursorBlink);
-    }
+  void changeCursorAppearance({
+    CursorType cursorType = CursorType.block,
+    bool blinking = true,
+  }) {
+    io.stdout.write(
+      ansi_codes.changeCursorAppearance(
+        cursorType: cursorType,
+        blinking: blinking,
+      ),
+    );
   }
 
   /// Requests the current cursor position from the terminal.
@@ -80,14 +84,13 @@ class AnsiTerminalController {
   /// Saves the current cursor position.
   ///
   /// Uses DEC private sequence which is widely supported.
-  void saveCursorPosition() =>
-      io.stdout.write(ansi_codes.saveCursorPositionDEC);
+  void saveCursorPosition() => io.stdout.write(ansi_codes.saveCursorPosition);
 
   /// Restores previously saved cursor position.
   ///
   /// Uses DEC private sequence which is widely supported.
   void restoreCursorPosition() =>
-      io.stdout.write(ansi_codes.restoreCursorPositionDEC);
+      io.stdout.write(ansi_codes.restoreCursorPosition);
 
   /// Attempts to change terminal window size.
   void changeSize(int width, int height) {
@@ -99,6 +102,10 @@ class AnsiTerminalController {
   /// Changes terminal window title.
   void changeTerminalTitle(String title) =>
       io.stdout.write(ansi_codes.changeTerminalTitle(title));
+
+  /// Changes terminal window title.
+  void changeTerminalIcon(String icon) =>
+      io.stdout.write(ansi_codes.changeTerminalIcon(icon));
 
   /// Enables or disables line wrapping.
   void changeLineWrappingMode({required bool enable}) {

@@ -1,3 +1,5 @@
+import 'package:dart_terminal/core.dart';
+
 /// ANSI escape sequences and control codes for terminal manipulation.
 ///
 /// This module provides constants and functions for generating ANSI escape sequences
@@ -5,36 +7,63 @@
 /// Based on documentation from:
 /// - https://gist.github.com/ConnerWill/d4b6c776b509add763e17f9f113fd25b
 /// - https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+///
+
+/// Annotation for defining that a escape code/control code is part of
+/// ANSI X3.64 / ECMA-48, DEC and XTerm.
+class _Ansi {
+  const _Ansi();
+}
+
+/// If an escape code is part of DEC and XTerm but not ANSI.
+class _DEC {
+  const _DEC();
+}
+
+/// If an escape code is part of XTerm but not DEC (or ANSI).
+class _Xterm {
+  final bool alwaysSupported;
+  const _Xterm({this.alwaysSupported = true});
+}
 
 //==============================================================================
 // BASIC ASCII CONTROL CODES
 //==============================================================================
 
 /// Ring the terminal bell (audio or visual alert)
+@_Ansi()
 const String bell = '\x07';
 
 /// Move cursor one position left
+@_Ansi()
 const String backspace = '\x08';
 
 /// Move cursor to next tab stop
+@_Ansi()
 const String tab = '\x09';
 
 /// Move cursor to beginning of next line
+@_Ansi()
 const String lineFeed = '\x0A';
 
 /// Move cursor down one line maintaining column position
+@_Ansi()
 const String verticalTab = '\x0B';
 
-/// Move cursor to next page
+/// Move cursor to next page (often treated like a newline)
+@_Ansi()
 const String formFeed = '\x0C';
 
 /// Move cursor to beginning of current line
+@_Ansi()
 const String carriageReturn = '\x0D';
 
 /// Start of escape sequence
+@_Ansi()
 const String escape = '\x1B';
 
 /// Delete character at cursor
+@_Ansi()
 const String delete = '\x7F';
 
 //==============================================================================
@@ -58,245 +87,323 @@ const String OSC = '\x1B]';
 //==============================================================================
 
 /// Request cursor position report
-const String cursorPositionQuery = '\x1B[6n';
+@_Ansi()
+const String cursorPositionQuery = '${CSI}6n';
 
 /// Move cursor to home position (1,1)
-const String cursorHome = '\x1B[H';
+@_Ansi()
+const String cursorToHome = '${CSI}H';
 
 /// Move cursor to specific position
-String cursorTo(int line, int column) => '\x1B[$line;${column}H';
+@_Ansi()
+String cursorTo(int line, int column) => '${CSI}$line;${column}H';
 
 /// Move cursor up by specified number of lines
-String cursorUp(int lines) => '\x1B[${lines}A';
+@_Ansi()
+String cursorUp(int lines) => '${CSI}${lines}A';
 
 /// Move cursor down by specified number of lines
-String cursorDown(int lines) => '\x1B[${lines}B';
+@_Ansi()
+String cursorDown(int lines) => '${CSI}${lines}B';
 
 /// Move cursor forward by specified number of columns
-String cursorForward(int columns) => '\x1B[${columns}C';
+@_Ansi()
+String cursorForward(int columns) => '${CSI}${columns}C';
 
 /// Move cursor backward by specified number of columns
-String cursorBackward(int columns) => '\x1B[${columns}D';
+@_Ansi()
+String cursorBackward(int columns) => '${CSI}${columns}D';
 
 /// Move cursor to beginning of next line
-const String cursorNextLine = '\x1B[E';
+@_Ansi()
+const String cursorNextLine = '${CSI}E';
 
 /// Move cursor to beginning of previous line
-const String cursorPrevLine = '\x1B[F';
+@_Ansi()
+const String cursorPrevLine = '${CSI}F';
 
 /// Move cursor to specified column in current line
-String cursorColumn(int column) => '\x1B[${column}G';
+@_Ansi()
+String cursorToColumn(int column) => '${CSI}${column}G';
 
-/// Alternative cursor position query (same as cursorPositionQuery)
-const String requestCursorPosition = '\x1B[6n';
+/// Moves cursor down one line; if at bottom of scroll region,
+/// scrolls screen up one line
+@_Ansi()
+const String cursorDownScroll = '\x1BD';
 
-/// Scroll screen up one line
+/// Moves cursor up one line; if at top of scroll region,
+/// scrolls screen down one line
+@_Ansi()
 const String cursorUpScroll = '\x1BM';
 
 //==============================================================================
 // CURSOR STATE MANAGEMENT
 //==============================================================================
 
-/// Save cursor position (DEC sequence - recommended)
-const String saveCursorPositionDEC = '\x1B7';
+/// Save cursor position
+@_DEC()
+const String saveCursorPosition = '\x1B7';
 
-/// Restore cursor position (DEC sequence - recommended)
-const String restoreCursorPositionDEC = '\x1B8';
-
-/// Save cursor position (SCO sequence)
-const String saveCursorPositionSCO = '\x1B[s';
-
-/// Restore cursor position (SCO sequence)
-const String restoreCursorPositionSCO = '\x1B[u';
+/// Restore cursor position
+@_DEC()
+const String restoreCursorPosition = '\x1B8';
 
 //==============================================================================
-// CURSOR VISIBILITY CONTROL
+// CURSOR APPEARANCE
 //==============================================================================
 
 /// Hide the cursor
-const String hideCursor = '\x1B[?25l';
+@_DEC()
+const String hideCursor = '${CSI}?25l';
 
 /// Show the cursor
-const String showCursor = '\x1B[?25h';
+@_DEC()
+const String showCursor = '${CSI}?25h';
 
-/// Enable cursor blinking
-const String enableCursorBlink = '\x1B[?12l';
+@_DEC()
+String changeCursorAppearance({
+  CursorType cursorType = CursorType.block,
+  bool blinking = true,
+}) {
+  final decPrivateMode = switch ((cursorType, blinking)) {
+    (CursorType.block, true) => 0,
+    (CursorType.block, false) => 2,
+    (CursorType.verticalBar, true) => 3,
+    (CursorType.verticalBar, false) => 4,
+    (CursorType.underline, true) => 5,
+    (CursorType.underline, false) => 6,
+  };
+  return '${CSI}${decPrivateMode}q';
+}
 
-/// Disable cursor blinking
-const String disableCursorBlink = '\x1B[?12h';
+/// Enable cursor blinking (not reliable => use [changeCursorAppearance)
+@_DEC()
+const String enableCursorBlink = '${CSI}?12l';
+
+/// Disable cursor blinking (not reliable => use [changeCursorAppearance)
+@_DEC()
+const String disableCursorBlink = '${CSI}?12h';
 
 //==============================================================================
 // WINDOW MANIPULATION
 //==============================================================================
 
-/// Change terminal window dimensions
+/// Change terminal window dimensions (ignored on windows)
+@_Xterm()
 String changeWindowDimension(int width, int height) =>
-    '\x1b[8;$height;${width}t';
+    '${CSI}8;$height;${width}t';
 
 /// Set terminal window title
-String changeTerminalTitle(String title) => '\x1b]0;$title\x07';
+@_Xterm()
+String changeTerminalTitle(String title) => '${OSC}0;$title\x07';
+
+/// Set terminal window icon
+///
+/// Is also a title but showed differently than [changeTerminalTitle]
+/// by some terminals.
+@_Xterm()
+String changeTerminalIcon(String icon) => '${OSC}1;$icon\x07';
 
 //==============================================================================
 // SCREEN CLEARING AND ERASING
 //==============================================================================
 
 /// Erase from cursor to end of screen
-const String eraseScreenFromCursor = '\x1B[J';
+@_Ansi()
+const String eraseScreenFromCursor = '${CSI}J';
 
 /// Erase from start of screen to cursor
-const String eraseScreenToCursor = '\x1B[1J';
+@_Ansi()
+const String eraseScreenToCursor = '${CSI}1J';
 
 /// Erase entire screen
-const String eraseEntireScreen = '\x1B[2J';
+@_Ansi()
+const String eraseEntireScreen = '${CSI}2J';
 
 /// Erase from cursor to end of line
-const String eraseLineFromCursor = '\x1B[K';
+@_Ansi()
+const String eraseLineFromCursor = '${CSI}K';
 
 /// Erase from start of line to cursor
-const String eraseLineToCursor = '\x1B[1K';
+@_Ansi()
+const String eraseLineToCursor = '${CSI}1K';
 
 /// Erase entire line
-const String eraseEntireLine = '\x1B[2K';
+@_Ansi()
+const String eraseEntireLine = '${CSI}2K';
 
 //==============================================================================
 // TEXT FORMATTING
 //==============================================================================
 
 /// Reset all text formatting
-const String resetAllFormats = '\x1B[0m';
+@_Ansi()
+const String resetAllFormats = '${CSI}0m';
 
 /// Enable bold text
-const String boldText = '\x1B[1m';
+@_Ansi()
+const String boldText = '${CSI}1m';
 
 /// Enable dim/faint text
-const String dimText = '\x1B[2m';
+@_Ansi()
+const String dimText = '${CSI}2m';
 
 /// Enable italic text
-const String italicText = '\x1B[3m';
+@_Ansi()
+const String italicText = '${CSI}3m';
 
 /// Enable underlined text
-const String underlineText = '\x1B[4m';
+@_Ansi()
+const String underlineText = '${CSI}4m';
 
 /// Enable blinking text
-const String blinkingText = '\x1B[5m';
+@_Ansi()
+const String blinkingText = '${CSI}5m';
 
 /// Enable inverse/reversed colors
-const String inverseText = '\x1B[7m';
+@_Ansi()
+const String inverseText = '${CSI}7m';
 
 /// Enable hidden/invisible text
-const String hiddenText = '\x1B[8m';
+@_Ansi()
+const String hiddenText = '${CSI}8m';
 
 /// Enable strikethrough text
-const String strikethroughText = '\x1B[9m';
+@_Ansi()
+const String strikethroughText = '${CSI}9m';
 
 //==============================================================================
 // TEXT FORMAT RESET
 //==============================================================================
 
 /// Reset bold and dim attributes
-const String resetBoldDim = '\x1B[22m';
+@_Ansi()
+const String resetBoldDim = '${CSI}22m';
 
 /// Reset italic attribute
-const String resetItalic = '\x1B[23m';
+@_Ansi()
+const String resetItalic = '${CSI}23m';
 
 /// Reset underline attribute
-const String resetUnderline = '\x1B[24m';
+@_Ansi()
+const String resetUnderline = '${CSI}24m';
 
 /// Reset blink attribute
-const String resetBlink = '\x1B[25m';
+@_Ansi()
+const String resetBlink = '${CSI}25m';
 
 /// Reset inverse/reversed colors
-const String resetInverse = '\x1B[27m';
+@_Ansi()
+const String resetInverse = '${CSI}27m';
 
 /// Reset hidden/invisible attribute
-const String resetHidden = '\x1B[28m';
+@_Ansi()
+const String resetHidden = '${CSI}28m';
 
 /// Reset strikethrough attribute
-const String resetStrikethrough = '\x1B[29m';
+@_Ansi()
+const String resetStrikethrough = '${CSI}29m';
 
 //==============================================================================
 // COLOR CONTROL
 //==============================================================================
 
-/// Reset to default color
-const String defaultColor = '\x1B[39m';
+/// Reset to default color in foreground
+@_Ansi()
+const String defaultForegroundColor = '${CSI}39m';
+
+/// Reset to default color in background
+@_Ansi()
+const String defaultBackgroundColor = '${CSI}39m';
 
 /// Set foreground color using color code
-String foregroundColor(int colorCode) => '\x1B[${colorCode}m';
+@_Ansi()
+String foregroundColor(int colorCode) => '${CSI}${colorCode}m';
 
 /// Set background color using color code
-String backgroundColor(int colorCode) => '\x1B[${colorCode + 10}m';
+@_Ansi()
+String backgroundColor(int colorCode) => '${CSI}${colorCode + 10}m';
 
 /// Set 16-color ANSI color
+@_Ansi()
 String ansi16Color(int colorCode, {bool isForeground = true}) =>
-    '\x1B[${isForeground ? 3 : 4}${colorCode}m';
+    '${CSI}${isForeground ? 3 : 4}${colorCode}m';
 
 /// Set bright ANSI color
+@_Ansi()
 String ansiBrightColor(int colorCode, {bool isForeground = true}) =>
-    '\x1B[${isForeground ? 9 : 10}${colorCode}m';
+    '${CSI}${isForeground ? 9 : 10}${colorCode}m';
 
 //==============================================================================
 // EXTENDED COLOR SUPPORT
 //==============================================================================
 
 /// Set foreground color using 256-color palette
-String fg256Color(int colorId) => '\x1B[38;5;${colorId}m';
+@_Xterm(alwaysSupported: false)
+String fg256Color(int colorId) => '${CSI}38;5;${colorId}m';
 
 /// Set background color using 256-color palette
-String bg256Color(int colorId) => '\x1B[48;5;${colorId}m';
+@_Xterm(alwaysSupported: false)
+String bg256Color(int colorId) => '${CSI}48;5;${colorId}m';
 
 /// Set foreground color using RGB values
-String fgRGBColor(int r, int g, int b) => '\x1B[38;2;$r;$g;${b}m';
+@_Xterm(alwaysSupported: false)
+String fgRGBColor(int r, int g, int b) => '${CSI}38;2;$r;$g;${b}m';
 
 /// Set background color using RGB values
-String bgRGBColor(int r, int g, int b) => '\x1B[48;2;$r;$g;${b}m';
+@_Xterm(alwaysSupported: false)
+String bgRGBColor(int r, int g, int b) => '${CSI}48;2;$r;$g;${b}m';
 
 //==============================================================================
 // SCREEN MODE CONTROL
 //==============================================================================
 
-/// Set screen mode
-String setScreenMode(int mode) => '\x1B[=${mode}h';
-
-/// Reset screen mode
-String resetScreenMode(int mode) => '\x1B[=${mode}l';
-
 /// Enable line wrapping
-const String enableLineWrapping = '\x1B[?7h';
+@_DEC()
+const String enableLineWrapping = '${CSI}?7h';
 
 /// Disable line wrapping
-const String disableLineWrapping = '\x1B[?7l';
+@_DEC()
+const String disableLineWrapping = '${CSI}?7l';
 
 //==============================================================================
 // TERMINAL BUFFER CONTROL
 //==============================================================================
 
 /// Switch to alternate screen buffer
-const String enableAlternativeBuffer = '\x1B[?1049h';
+@_DEC()
+const String enableAlternativeBuffer = '${CSI}?1049h';
 
 /// Switch back to main screen buffer
-const String disableAlternativeBuffer = '\x1B[?1049l';
+@_DEC()
+const String disableAlternativeBuffer = '${CSI}?1049l';
 
 /// Save current screen
-const String saveScreen = '\x1B[?47h';
+@_DEC()
+const String saveScreen = '${CSI}?47h';
 
 /// Restore saved screen
-const String restoreScreen = '\x1B[?47l';
+@_DEC()
+const String restoreScreen = '${CSI}?47l';
 
 //==============================================================================
 // FOCUS AND MOUSE TRACKING
 //==============================================================================
 
 /// Enable terminal focus events
+@_Xterm(alwaysSupported: false)
 const String enableFocusTracking = "\u001B[?1004h";
 
 /// Disable terminal focus events
+@_Xterm(alwaysSupported: false)
 const String disableFocusTracking = "\u001B[?1004l";
 
 /// Enable mouse tracking (motion, button, and SGR encoding)
+@_Xterm(alwaysSupported: false)
 const String enableMouseEvents = "\u001B[?1003;1006h";
 
 /// Disable mouse tracking
+@_Xterm(alwaysSupported: false)
 const String disableMouseEvents = "\u001B[?1003;1006l";
 
 //==============================================================================
@@ -304,7 +411,7 @@ const String disableMouseEvents = "\u001B[?1003;1006l";
 //==============================================================================
 
 /// Generate keyboard escape sequence
-String keyboardString(String code) => '\x1B[${code}~';
+String keyboardString(String code) => '${CSI}${code}~';
 
 /// Generate function key escape sequence
 String fKey(int n) => keyboardString('1${n - 1}');
@@ -350,5 +457,5 @@ String keyCode(
   if (shift) baseCode = '0;${int.parse(baseCode.split(';')[1]) + 25}';
   if (ctrl) baseCode = '0;${int.parse(baseCode.split(';')[1]) + 35}';
   if (alt) baseCode = '0;${int.parse(baseCode.split(';')[1]) + 45}';
-  return '\x1B[${baseCode}~';
+  return '${CSI}${baseCode}~';
 }

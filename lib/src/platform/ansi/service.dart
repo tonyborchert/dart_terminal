@@ -93,7 +93,7 @@ class AnsiTerminalService extends TerminalService {
       _controller
         ..changeScreenMode(alternateBuffer: false)
         ..changeCursorVisibility(hiding: false)
-        ..changeCursorBlinking(blinking: true);
+        ..changeCursorAppearance(cursorType: CursorType.block, blinking: true);
     }
     _controller
       ..setInputMode(false)
@@ -177,6 +177,9 @@ class AnsiTerminalService extends TerminalService {
 
   @override
   void setTerminalTitle(String title) => _controller.changeTerminalTitle(title);
+
+  @override
+  void setTerminalIcon(String icon) => _controller.changeTerminalIcon(icon);
 
   @override
   void trySetTerminalSize(Size size) =>

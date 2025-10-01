@@ -492,7 +492,7 @@ class TerminalPainter {
 
   @pragma('vm:prefer-inline')
   void paintCell(Canvas canvas, Offset offset, TerminalCell cell) {
-    if (cell.fg == extensionForeground) return;
+    if (cell.fg == noPaintCodeUnit) return;
     late final String grapheme;
     bool doubleWidth = false;
     if (cell.extension != null) {

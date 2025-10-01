@@ -1,4 +1,5 @@
 // Project imports:
+import 'primitives.dart';
 import 'geometry.dart';
 import 'graphics.dart';
 import 'style.dart';
@@ -54,6 +55,12 @@ abstract class TerminalService {
 
   /// Sets the terminal window title.
   void setTerminalTitle(String title);
+
+  /// Sets the terminal window title.
+  ///
+  /// (In principle is also a title but showed differently by
+  /// some terminal emulators).
+  void setTerminalIcon(String icon);
 
   /// Triggers the terminal bell (audible or visible alert).
   void bell();
@@ -122,81 +129,28 @@ abstract class TerminalViewport implements TerminalCanvas {
   void updateScreen();
 }
 
-/// System signals that can be handled by the terminal application.
+/// Represents the state of the text cursor.
 ///
-/// These signals correspond to standard POSIX signals that the application
-/// may need to respond to.
-enum AllowedSignal {
-  /// Hangup detected on controlling terminal
-  sighup,
+/// Includes the cursor's position and whether it is currently blinking.
+final class CursorState {
+  final Position position;
+  final CursorType type;
+  final bool blinking;
 
-  /// Interrupt from keyboard (Ctrl+C)
-  sigint,
+  CursorState({
+    required this.position,
+    this.type = CursorType.block,
+    this.blinking = true,
+  });
 
-  /// Termination signal
-  sigterm,
+  @override
+  bool operator ==(Object other) =>
+      other is CursorState &&
+      position == other.position &&
+      blinking == other.blinking;
 
-  /// User-defined signal 1
-  sigusr1,
-
-  /// User-defined signal 2
-  sigusr2,
-}
-
-/// Control characters and special keys that can be received as input.
-///
-/// These represent both standard control characters (Ctrl+key combinations)
-/// and special keys like arrows and function keys.
-enum ControlCharacter {
-  ctrlSpace, // NULL
-  ctrlA,
-  ctrlB,
-  ctrlC, // Break
-  ctrlD, // End of File
-  ctrlE,
-  ctrlF,
-  ctrlG, // Bell
-  ctrlH, // Backspace
-  tab,
-  ctrlJ,
-  ctrlK,
-  ctrlL,
-  enter,
-  ctrlN,
-  ctrlO,
-  ctrlP,
-  ctrlQ,
-  ctrlR,
-  ctrlS,
-  ctrlT,
-  ctrlU,
-  ctrlV,
-  ctrlW,
-  ctrlX,
-  ctrlY,
-  ctrlZ, // Suspend
-  /// Navigation keys
-  arrowLeft,
-  arrowRight,
-  arrowUp,
-  arrowDown,
-  pageUp,
-  pageDown,
-  wordLeft,
-  wordRight,
-
-  /// Editing keys
-  home,
-  end,
-  escape,
-  delete,
-  wordBackspace,
-
-  /// Function keys F1-F4 (TODO: extend to F12)
-  F1,
-  F2,
-  F3,
-  F4,
+  @override
+  int get hashCode => Object.hash(position.hashCode, blinking);
 }
 
 /// Base class for mouse events in the terminal.
@@ -276,11 +230,6 @@ final class MouseScrollEvent extends MouseEvent {
   );
 }
 
-/// Note: button 4-7 are used for scrolling
-enum MouseButton { left, right, middle, button8, button9, button10, button11 }
-
-enum MouseButtonState { down, up }
-
 /// Interface for handling terminal events.
 ///
 /// Implement this interface to receive events from the terminal such as
@@ -314,107 +263,4 @@ abstract interface class TerminalListener {
     void Function(Size) onScreenResize,
     void Function(AllowedSignal) onSignal,
   }) = LambdaTerminalListener;
-}
-
-/// Support levels for terminal capabilities.
-///
-/// Used to indicate whether a specific capability is supported, unsupported,
-/// or somewhere in between.
-enum CapabilitySupport implements Comparable<CapabilitySupport> {
-  /// if a capability is very likely to be unsupported
-  unsupported,
-
-  /// if there is no information on if a capability is supported or not
-  unknown,
-
-  /// features that might work
-  assumed,
-
-  /// features that will work with high degree of reliability
-  supported;
-
-  @override
-  int compareTo(CapabilitySupport other) => index.compareTo(other.index);
-}
-
-/// List of terminal capabilities.
-///
-/// These capabilities represent various features and options that may be
-/// supported by the terminal, such as color support and mouse event handling.
-enum Capability {
-  /// Support for [BasicTerminalColor]
-  standardColors,
-
-  ///
-  ansiColors,
-
-  /// Support for [XTermTerminalColor]
-  extendedColors,
-
-  /// Support for [RGBTerminalColor]
-  trueColors,
-
-  /// If an alternate screen buffer is available or if for the viewport everything needs to be redrawn
-  alternateScreenBuffer,
-
-  /// Support for [TerminalListener.mouseEvent]
-  mouse,
-
-  // TODO: currently no support whatsoever => need new event
-  bracketedPaste,
-
-  // TODO: currently no support whatsoever
-  uft8,
-
-  /// Support for setting [CursorState.blinking] to false
-  cursorBlinkingDisable,
-
-  /// Support for [TextEffects.intense]
-  intenseTextDecoration,
-
-  /// Support for [TextEffects.italic]
-  italicTextDecoration,
-
-  /// Support for [TextEffects.underline]
-  underlineTextDecoration,
-
-  /// Support for [TextEffects.doubleUnderline]
-  doubleUnderlineTextDecoration,
-
-  /// Support for [TextEffects.crossedOut]
-  crossedOutTextDecoration,
-
-  /// Support for [TextEffects.faint]
-  faintTextDecoration,
-
-  /// Support for at least [TextEffects.slowBlink]
-  /// and possibly [TextEffects.fastBlink]
-  textBlinkTextDecoration,
-}
-
-// TODO: add ansi support
-enum CursorType { block, underline, verticalBar }
-
-/// Represents the state of the text cursor.
-///
-/// Includes the cursor's position and whether it is currently blinking.
-final class CursorState {
-  final Position position;
-  final CursorType type;
-  final bool blinking;
-
-  CursorState({
-    required this.position,
-    this.type = CursorType.block,
-    this.blinking = true,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      other is CursorState &&
-      position == other.position &&
-      blinking == other.blinking;
-
-  @override
-  int get hashCode => Object.hash(position.hashCode, blinking);
 }
