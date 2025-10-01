@@ -14,13 +14,13 @@ abstract class TerminalService {
   bool _isAttached = false;
 
   Future<void> attach() async {
-    assert(_isAttached, "TerminalWindow has already been attached.");
+    assert(!_isAttached, "TerminalWindow has already been attached.");
     _isAttached = true;
     logger._isActive = true;
   }
 
   Future<void> detach() async {
-    assert(!_isAttached, "TerminalWindow has not been attached.");
+    assert(_isAttached, "TerminalWindow has not been attached.");
     _isAttached = false;
     logger._isActive = false;
     viewport._isActive = false;
