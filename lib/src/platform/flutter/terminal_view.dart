@@ -495,12 +495,10 @@ class TerminalPainter {
     if (cell.fg == noPaintCodeUnit) return;
     late final String grapheme;
     bool doubleWidth = false;
-    if (cell.extension != null) {
-      final extension = cell.extension!;
-      if (extension is CharacterCellExtension) {
-        doubleWidth = true;
-        grapheme = extension.grapheme;
-      }
+    if (cell.grapheme != null) {
+      if(cell.grapheme!.isSecond) return;
+      doubleWidth = cell.grapheme!.width == 2;
+      grapheme = cell.grapheme!.data;
     } else {
       grapheme = String.fromCharCode(cell.fg.codeUnit);
     }

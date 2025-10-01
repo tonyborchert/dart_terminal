@@ -358,10 +358,11 @@ abstract class BufferTerminalViewport extends TerminalViewport {
   }
 
   bool validateGraphemeAndCalculateDiff(Position position) {
-    final cell = getCell(position);
+    TerminalCell cell = getCell(position);
     final grapheme = cell.grapheme!;
     if (grapheme.isSecond == true) {
       position = position - e1;
+      cell = getCell(position);
     }
     if ((cell.newFg != null && cell.newFg?.codeUnit != noPaintCodeUnit) ||
         (grapheme.width == 2 &&
@@ -369,14 +370,16 @@ abstract class BufferTerminalViewport extends TerminalViewport {
             getCell(position + e1).newFg?.codeUnit != noPaintCodeUnit)) {
       cell.changed = true;
       cell.grapheme = null;
-      if (cell.newFg == null || cell.newFg!.codeUnit == noPaintCodeUnit) {
+      final fg = cell.newFg ?? cell.fg;
+      if (fg.codeUnit == noPaintCodeUnit) {
         cell.newFg = Foreground();
       }
       if (grapheme.width == 2) {
         final cell = getCell(position + e1);
         cell.changed = true;
         cell.grapheme = null;
-        if (cell.newFg == null || cell.newFg!.codeUnit == noPaintCodeUnit) {
+        final fg = cell.newFg ?? cell.fg;
+        if (fg.codeUnit == noPaintCodeUnit) {
           cell.newFg = Foreground();
         }
       }

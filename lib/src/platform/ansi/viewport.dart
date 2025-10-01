@@ -129,7 +129,7 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
               _cursorPosition += e1 * grapheme.width;
               _transition(cell.fg.style, cell.bg);
               _redrawBuff.write(grapheme.data);
-              cell.changed = false;
+              // cell.changed = false; (keep those with a grapheme always changed)
               x += grapheme.width - 1;
             }
             continue;

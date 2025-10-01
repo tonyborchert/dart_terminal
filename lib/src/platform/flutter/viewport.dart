@@ -22,6 +22,7 @@ class FlutterTerminalViewport extends BufferTerminalViewport {
     onChanged();
   }
 
+  /// TODO: grapheme and newGrapheme needed in cell to actually display everything correctly
   @override
   void updateScreen() {
     for (int y = 0; y < size.height; y++) {
@@ -29,9 +30,13 @@ class FlutterTerminalViewport extends BufferTerminalViewport {
       final row = getRow(y);
       for (int x = 0; x < size.width; x++) {
         final cell = row[x];
+        final cellPos = Position(x, y);
         if (cell.changed) {
-          if (cell.extension != null) {
-            // TODO
+          final grapheme = cell.grapheme;
+          if (grapheme != null && validateGraphemeAndCalculateDiff(cellPos)) {
+            if (!grapheme.isSecond) {
+              x += grapheme.width - 1;
+            }
             continue;
           }
           if (cell.calculateDifference()) {
