@@ -131,6 +131,7 @@ abstract class BufferTerminalViewport extends TerminalViewport {
   final List<List<TerminalCell>> _data = [];
   final List<bool> _changeList = [];
   Size _dataSize = Size(0, 0);
+  Rect get rect => Position.topLeft & size;
 
   bool checkRowChanged(int row) {
     final changed = _changeList[row];
@@ -312,12 +313,13 @@ abstract class BufferTerminalViewport extends TerminalViewport {
     required Position position,
     TextStyle style = const TextStyle(),
   }) {
+    if (!rect.contains(Position(0, position.y))) return;
     _changeList[position.y] = true;
     for (int i = 0; i < text.length; i++) {
       int codepoint = text.codeUnitAt(i);
       final charPosition = Position(position.x + i, position.y);
 
-      if (!(Position.topLeft & size).contains(charPosition)) continue;
+      if (!rect.contains(charPosition)) continue;
       if (codepoint < 32 || codepoint == 127) continue;
 
       final foreground = Foreground(style: style.fgStyle, codeUnit: codepoint);
@@ -334,7 +336,6 @@ abstract class BufferTerminalViewport extends TerminalViewport {
     int width,
     Position position,
   ) {
-    final rect = Position.topLeft & size;
     final cell = getCell(position);
     // check if on field before is 2 wide grapheme (eliminate it)
     if (cell.grapheme?.isSecond == true) {
@@ -420,11 +421,13 @@ abstract class BufferTerminalViewport extends TerminalViewport {
     required Position position,
     TextStyle style = const TextStyle(),
   }) {
+    final rect = Position.topLeft & size;
+    if (!rect.contains(Position(0, position.y))) return;
     _changeList[position.y] = true;
     Position charPos = position;
     final row = getRow(position.y);
     for (final character in text.characters) {
-      if (!(Position.topLeft & size).contains(charPos)) continue;
+      if (!rect.contains(charPos)) continue;
       final width = character.wcwidth();
       if (width == 1 && character.length == 1) {
         // is in BMP (only one code unit) and width is 1
