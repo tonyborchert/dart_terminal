@@ -25,30 +25,35 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
     if (_initialActivation) {
       _initialActivation = false;
       _cursorPosition = Position.topLeft;
-      _controller.setCursorPosition(_cursorPosition);
-      // should also be set explicitly by controller?
       _cursorHidden = false;
       _cursorAppearance = (CursorType.block, true);
+      _currentFg = ForegroundStyle();
+      _currentBg = Color.normal();
     }
-    io.stdout.write(ansi_codes.resetAllFormats);
-    currentFg = const ForegroundStyle();
-    currentBg = const Color.normal();
-    resize();
+    _controller
+      ..changeScreenMode(alternateBuffer: true)
+      ..changeMouseTrackingMode(enable: true)
+      ..setCursorPosition(_cursorPosition);
+    io.stdout.write(ansi_codes.eraseEntireScreen);
+    _constrainCursorPosition();
+    resizeBuffer();
+  }
+
+  void deactivate() {
+    _controller
+      ..changeScreenMode(alternateBuffer: true)
+      ..changeMouseTrackingMode(enable: false);
+    _transition(ForegroundStyle(), Color.normal());
+    io.stdout.write(_redrawBuff);
+    _redrawBuff.clear();
   }
 
   void resize() {
     resizeBuffer();
-    clearScreen();
-    _constrainCursorPosition();
-  }
-
-  void clearScreen() {
     _backgroundFill = null;
-    _transition(ForegroundStyle(), const Color.normal());
-    _redrawBuff.write(ansi_codes.eraseEntireScreen);
-    io.stdout.write(_redrawBuff);
-    _redrawBuff.clear();
+    io.stdout.write(ansi_codes.eraseEntireScreen);
     resetBuffer();
+    _constrainCursorPosition();
   }
 
   @override
@@ -101,8 +106,8 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
   }
 
   final StringBuffer _redrawBuff = StringBuffer();
-  late ForegroundStyle currentFg;
-  late Color currentBg;
+  late ForegroundStyle _currentFg;
+  late Color _currentBg;
 
   /// returns if cursor has been moved
   // more optimizations possible
@@ -172,25 +177,25 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
   }
 
   void _transition(ForegroundStyle fg, Color bg) {
-    final fromEffects = currentFg.effects;
+    final fromEffects = _currentFg.effects;
     final toEffects = fg.effects;
     final textEffectsDiff = fromEffects != toEffects;
-    final foregroundColorDiff = !equalsColor(fg.color, currentFg.color);
-    final backgroundColorDiff = !equalsColor(bg, currentBg);
+    final foregroundColorDiff = !equalsColor(fg.color, _currentFg.color);
+    final backgroundColorDiff = !equalsColor(bg, _currentBg);
     if (!textEffectsDiff) {
       if (foregroundColorDiff && backgroundColorDiff) {
         _redrawBuff.write(
           "${ansi_codes.CSI}${fgSgr(fg.color)};"
           "${bgSgr(bg)}m",
         );
-        currentFg = fg;
-        currentBg = bg;
+        _currentFg = fg;
+        _currentBg = bg;
       } else if (foregroundColorDiff) {
         _redrawBuff.write("${ansi_codes.CSI}${fgSgr(fg.color)}m");
-        currentFg = fg;
+        _currentFg = fg;
       } else if (backgroundColorDiff) {
         _redrawBuff.write("${ansi_codes.CSI}${bgSgr(bg)}m");
-        currentBg = bg;
+        _currentBg = bg;
       }
     } else if (toEffects.isEmpty) {
       _firstParameter = true;
@@ -203,18 +208,18 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
         _writeParameter(bgSgr(bg));
       }
       _redrawBuff.writeCharCode(109);
-      currentFg = fg;
-      currentBg = bg;
+      _currentFg = fg;
+      _currentBg = bg;
     } else {
       _firstParameter = true;
       _redrawBuff.write(ansi_codes.CSI);
-      currentFg = fg;
+      _currentFg = fg;
       if (foregroundColorDiff) {
         _writeParameter(fgSgr(fg.color));
       }
       if (backgroundColorDiff) {
         _writeParameter(bgSgr(bg));
-        currentBg = bg;
+        _currentBg = bg;
       }
       final changedEffects = fromEffects ^ toEffects;
       final addedEffects = toEffects & changedEffects;

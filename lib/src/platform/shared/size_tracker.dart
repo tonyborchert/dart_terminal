@@ -96,8 +96,11 @@ class PosixTerminalSizeTracker extends TerminalSizeTracker {
 
     // Set up SIGWINCH handler for terminal resize events
     _sigwinchSub = io.ProcessSignal.sigwinch.watch().listen((_) {
-      _currentSize = determiner.determine();
-      listener?.call();
+      final newSize = determiner.determine();
+      if (_currentSize != newSize) {
+        _currentSize = newSize;
+        listener?.call();
+      }
     });
   }
 

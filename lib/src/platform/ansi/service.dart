@@ -88,38 +88,25 @@ class AnsiTerminalService extends TerminalService {
     _subscriptions.clear();
     _inputProcessor.stopListening();
     _sizeTracker.stopTracking();
-    // TODO: perhaps clear alternative buffer?
     if (viewPortWasActive) {
-      _controller
-        ..changeScreenMode(alternateBuffer: false)
-        ..changeCursorVisibility(hiding: false)
-        ..changeCursorAppearance(cursorType: CursorType.block, blinking: true);
+      _viewport.deactivate();
     }
     _controller
       ..setInputMode(false)
-      ..changeFocusTrackingMode(enable: false)
-      ..changeMouseTrackingMode(enable: false)
-      ..changeLineWrappingMode(enable: true);
+      ..changeFocusTrackingMode(enable: false);
   }
 
   @override
   void loggerMode() {
     if (_logger.isActive) return;
     super.loggerMode();
-    _controller
-      ..changeLineWrappingMode(enable: true)
-      ..changeScreenMode(alternateBuffer: false)
-      ..changeMouseTrackingMode(enable: false);
+    if (_viewport.isActive) _viewport.deactivate();
   }
 
   @override
   void viewPortMode() {
     if (_viewport.isActive) return;
     super.viewPortMode();
-    _controller
-      ..changeLineWrappingMode(enable: false)
-      ..changeScreenMode(alternateBuffer: true)
-      ..changeMouseTrackingMode(enable: true);
     _viewport.activate();
   }
 

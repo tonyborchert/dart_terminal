@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dart_terminal/ansi.dart';
+import 'package:dart_terminal/src/platform/ansi/escape_codes.dart';
 
 class ExitListener extends DefaultTerminalListener {
   @override
@@ -10,14 +11,12 @@ class ExitListener extends DefaultTerminalListener {
       exit(0);
     }
   }
+
+  @override
+  void screenResize(Size size) => draw();
 }
 
-final service = AnsiTerminalService.agnostic()..listener = ExitListener();
-final viewport = service.viewport;
-
-void main() async {
-  await service.attach();
-  service.viewPortMode();
+void draw() {
   final id = BorderDrawIdentifier();
   final style = BorderCharSet.rounded();
   viewport.drawBorderBox(
@@ -36,5 +35,15 @@ void main() async {
     style: style,
     drawId: id,
   );
+
   viewport.updateScreen();
+}
+
+final service = AnsiTerminalService.agnostic()..listener = ExitListener();
+final viewport = service.viewport;
+
+void main() async {
+  await service.attach();
+  service.viewPortMode();
+  draw();
 }
