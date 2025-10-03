@@ -59,7 +59,11 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
   @override
   CursorState? get cursor => _cursorHidden
       ? null
-      : CursorState(position: _cursorPosition!, blinking: _cursorAppearance.$2);
+      : CursorState(
+          position: _cursorPosition!,
+          type: _cursorAppearance.$1,
+          blinking: _cursorAppearance.$2,
+        );
   late (CursorType, bool) _cursorAppearance; // (type, blinking)
   late bool _cursorHidden;
   late Position _cursorPosition;
