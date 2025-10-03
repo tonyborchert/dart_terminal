@@ -39,12 +39,12 @@ class AnsiTerminalController {
   ///
   /// Not supported by all terminals.
   void changeCursorAppearance({
-    CursorType cursorType = CursorType.block,
+    CursorType type = CursorType.block,
     bool blinking = true,
   }) {
     io.stdout.write(
       ansi_codes.changeCursorAppearance(
-        cursorType: cursorType,
+        cursorType: type,
         blinking: blinking,
       ),
     );

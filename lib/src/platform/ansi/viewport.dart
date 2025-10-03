@@ -43,6 +43,12 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
     _controller
       ..changeScreenMode(alternateBuffer: true)
       ..changeMouseTrackingMode(enable: false);
+    if (_cursorAppearance != (CursorType.block, true)) {
+      _controller.changeCursorAppearance(
+        type: CursorType.block,
+        blinking: true,
+      );
+    }
     _transition(ForegroundStyle(), Color.normal());
     io.stdout.write(_redrawBuff);
     _redrawBuff.clear();
@@ -79,7 +85,7 @@ class AnsiTerminalViewport extends BufferTerminalViewport {
         _cursorAppearance = (cursor.type, cursor.blinking);
         _controller.changeCursorAppearance(
           blinking: cursor.blinking,
-          cursorType: cursor.type,
+          type: cursor.type,
         );
       }
       if (cursor.position != _cursorPosition) {
