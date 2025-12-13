@@ -21,6 +21,9 @@ extension type const Size._(({int width, int height}) _) {
 /// Represents a 2D vector offset with integer components.
 ///
 /// Used for relative movements and position calculations in the terminal.
+///
+/// For example, an Offset of (2, -1) represents a movement 2 units to the right
+/// and 1 unit up.
 extension type const Offset._(({int dx, int dy}) _) {
   /// Creates a new Offset with the specified horizontal ([dx]) and vertical ([dy]) deltas.
   const Offset(int dx, int dy) : this._((dx: dx, dy: dy));

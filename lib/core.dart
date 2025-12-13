@@ -11,6 +11,5 @@ export 'src/core/style.dart'
         TextStyle,
         BorderCharSet;
 export 'src/core/terminal.dart';
-export 'src/core/util.dart' show DefaultTerminalListener;
 export 'src/core/colors.dart';
 export 'src/core/primitives.dart';
