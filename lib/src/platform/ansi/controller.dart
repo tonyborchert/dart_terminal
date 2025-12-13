@@ -78,6 +78,14 @@ class AnsiTerminalController {
     }
   }
 
+  void changeBracketedPasteMode({required bool enable}) {
+    if(enable) {
+      io.stdout.write(ansi_codes.enableBracketedPaste);
+    } else {
+      io.stdout.write(ansi_codes.disableBracketedPaste);
+    }
+  }
+
   /// Triggers the terminal bell (audio or visual alert).
   void bell() => io.stdout.write(ansi_codes.bell);
 
@@ -138,7 +146,7 @@ class AnsiTerminalController {
   ///
   /// When enabled, input is processed character by character without buffering
   /// or line editing.
-  void setInputMode(bool enableRaw) {
+  void setInputMode({required bool enableRaw}) {
     if (enableRaw) {
       _termLib.enableRawMode();
     } else {
