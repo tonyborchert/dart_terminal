@@ -272,7 +272,7 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   ) {
     final position = getCellOffset(offset);
     terminalListener.mouseEvent(
-      MousePressEvent(false, false, false, position, button, buttonState),
+      MousePressEvent(position, button, buttonState),
     );
   }
 

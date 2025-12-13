@@ -3,7 +3,6 @@ import 'primitives.dart';
 import 'geometry.dart';
 import 'graphics.dart';
 import 'style.dart';
-import 'util.dart';
 
 /// Service for creating and managing terminal windows and associated objects.
 ///
@@ -129,138 +128,81 @@ abstract class TerminalViewport implements TerminalCanvas {
   void updateScreen();
 }
 
-/// Represents the state of the text cursor.
-///
-/// Includes the cursor's position and whether it is currently blinking.
-final class CursorState {
-  final Position position;
-  final CursorType type;
-  final bool blinking;
-
-  CursorState({
-    required this.position,
-    this.type = CursorType.block,
-    this.blinking = true,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      other is CursorState &&
-      position == other.position &&
-      blinking == other.blinking;
-
-  @override
-  int get hashCode => Object.hash(position.hashCode, blinking);
-}
-
-/// Base class for mouse events in the terminal.
-///
-/// Provides common properties for all mouse-related events including
-/// modifier key states and cursor position.
-sealed class MouseEvent {
-  /// Whether the shift key was pressed during the event
-  final bool shiftKeyPressed;
-
-  /// Whether the meta (command/windows) key was pressed
-  final bool metaKeyPressed;
-
-  /// Whether the control key was pressed
-  final bool ctrlKeyPressed;
-
-  /// The position of the mouse cursor when the event occurred
-  final Position position;
-
-  const MouseEvent(
-    this.shiftKeyPressed,
-    this.metaKeyPressed,
-    this.ctrlKeyPressed,
-    this.position,
-  );
-}
-
-/// Represents a mouse button press or release event.
-///
-/// Includes information about which button was involved and the type of press.
-final class MousePressEvent extends MouseEvent {
-  /// The mouse button that triggered the event
-  final MouseButton button;
-
-  /// The type of press event (click, double-click, etc)
-  final MouseButtonState buttonState;
-
-  const MousePressEvent(
-    super.shiftKeyPressed,
-    super.metaKeyPressed,
-    super.ctrlKeyPressed,
-    super.position,
-    this.button,
-    this.buttonState,
-  );
-}
-
-/// Represents mouse movement without button presses.
-///
-/// Used for tracking mouse position during hover operations.
-final class MouseHoverEvent extends MouseEvent {
-  const MouseHoverEvent(
-    super.shiftKeyPressed,
-    super.metaKeyPressed,
-    super.ctrlKeyPressed,
-    super.position,
-  );
-}
-
-/// Represents mouse wheel scrolling.
-///
-/// Contains information about the scroll amount in both x and y directions.
-final class MouseScrollEvent extends MouseEvent {
-  /// The amount of scrolling in the x direction
-  final int xScroll;
-
-  /// The amount of scrolling in the y direction
-  final int yScroll;
-
-  const MouseScrollEvent(
-    super.shiftKeyPressed,
-    super.metaKeyPressed,
-    super.ctrlKeyPressed,
-    super.position,
-    this.xScroll,
-    this.yScroll,
-  );
-}
-
 /// Interface for handling terminal events.
 ///
 /// Implement this interface to receive events from the terminal such as
 /// input, screen resizes, and signal interruptions.
 abstract interface class TerminalListener {
   /// Called when the terminal screen is resized.
-  void screenResize(Size size);
+  void screenResize(Size size) {}
 
-  /// Called when there is input from the user.
-  void input(String s);
+  /// Called when there is (non mouse) input from the user that could be interpreted.
+  void keyboardInput(KeyboardInput input) {}
 
-  /// Called for control characters like Ctrl+C.
-  void controlCharacter(ControlCharacter controlCharacter);
+  /// Called when there is any input.
+  void rawInput(List<int> input, bool wasAlreadyProcessed) {}
 
   /// Called when the terminal receives a system signal.
-  void signal(AllowedSignal signal);
+  void signal(AllowedSignal signal) {}
 
   /// Called for mouse events like clicks and movement.
   /// (only available in viewport mode)
-  void mouseEvent(MouseEvent event);
+  void mouseEvent(MouseEvent event) {}
 
   /// Called when the terminal gains or loses focus.
-  void focusChange(bool isFocused);
+  void focusChange(bool isFocused) {}
 
   /// Creates a delegate that forwards events to the provided handlers.
   factory TerminalListener({
-    void Function(ControlCharacter) onControlCharacter,
+    void Function(Size) onScreenResize,
+    void Function(KeyboardInput) onKeyboardInput,
+    void Function(List<int> input, bool wasAlreadyProcessed) onRawInput,
     void Function(bool) onFocusChange,
     void Function(String) onInput,
     void Function(MouseEvent) onMouseEvent,
-    void Function(Size) onScreenResize,
     void Function(AllowedSignal) onSignal,
-  }) = LambdaTerminalListener;
+  }) = _LambdaTerminalListener;
+}
+
+class _LambdaTerminalListener implements TerminalListener {
+  void Function(KeyboardInput) onKeyboardInput;
+  // ignore: avoid_positional_boolean_parameters
+  void Function(List<int> input, bool wasAlreadyProcessed) onRawInput;
+  void Function(bool) onFocusChange;
+  void Function(String) onInput;
+  void Function(MouseEvent) onMouseEvent;
+  void Function(Size) onScreenResize;
+  void Function(AllowedSignal) onSignal;
+
+  static void _(_, [_]) {}
+
+  _LambdaTerminalListener({
+    this.onKeyboardInput = _,
+    // ignore: avoid_positional_boolean_parameters
+    this.onFocusChange = _,
+    this.onRawInput = _,
+    this.onInput = _,
+    this.onMouseEvent = _,
+    this.onScreenResize = _,
+    this.onSignal = _,
+  });
+
+  @override
+  void keyboardInput(KeyboardInput input) => onKeyboardInput(input);
+
+  @override
+  void rawInput(List<int> input, bool wasAlreadyProcessed) =>
+      onRawInput(input, wasAlreadyProcessed);
+
+  @override
+  void focusChange(bool isFocused) => onFocusChange(isFocused);
+
+  @override
+  void mouseEvent(MouseEvent event) => onMouseEvent(event);
+
+  @override
+  void screenResize(Size size) => onScreenResize(size);
+
+  @override
+  void signal(AllowedSignal signal) => onSignal(signal);
 }

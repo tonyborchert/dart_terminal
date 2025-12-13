@@ -247,11 +247,11 @@ final _keyToTerminalKey = {
 }; */
 
 final _keyToControlCharacter = {
-  LogicalKeyboardKey.arrowUp: ControlCharacter.arrowUp,
-  LogicalKeyboardKey.arrowDown: ControlCharacter.arrowDown,
-  LogicalKeyboardKey.arrowLeft: ControlCharacter.arrowLeft,
-  LogicalKeyboardKey.arrowRight: ControlCharacter.arrowRight,
-  LogicalKeyboardKey.escape: ControlCharacter.escape,
+  LogicalKeyboardKey.arrowUp: KeyStrokes.arrowUp,
+  LogicalKeyboardKey.arrowDown: KeyStrokes.arrowDown,
+  LogicalKeyboardKey.arrowLeft: KeyStrokes.arrowLeft,
+  LogicalKeyboardKey.arrowRight: KeyStrokes.arrowRight,
+  LogicalKeyboardKey.escape: KeyStrokes.escape,
 };
 
 class CustomKeyboardListener extends StatelessWidget {
@@ -277,9 +277,12 @@ class CustomKeyboardListener extends StatelessWidget {
     final controlCharacter = _keyToControlCharacter[keyEvent.logicalKey];
 
     if (controlCharacter != null) {
-      terminalListener.controlCharacter(controlCharacter);
+      terminalListener.keyboardInput(controlCharacter);
     } else if (keyEvent.character != null && keyEvent.character != "") {
-      terminalListener.input(keyEvent.character!);
+      terminalListener.keyboardInput(
+        KeyStroke.tryGetAsciiKeyStroke(keyEvent.character!) ??
+            UnicodeChar(keyEvent.character!.characters),
+      );
     }
     return KeyEventResult.handled;
   }
