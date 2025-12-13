@@ -137,6 +137,26 @@ const String cursorDownScroll = '\x1BD';
 const String cursorUpScroll = '\x1BM';
 
 //==============================================================================
+// INPUT MODES
+//==============================================================================
+
+/// Enables to differentiate between normal numbers and the keypad
+@_DEC()
+const String enableApplicationKeypadMode = '\x1B=';
+
+/// Disables to differentiate between normal numbers and the keypad
+@_DEC()
+const String disableApplicationKeypadMode = '\x1B>';
+
+@_Xterm()
+/// Enables making it easier to differentiate between input and pasted input
+const String enableBracketedPaste = '$CSI?2004h';
+
+@_Xterm()
+/// Disables making it easier to differentiate between input and pasted input
+const String disableBracketedPaste = '$CSI?2004l';
+
+//==============================================================================
 // CURSOR STATE MANAGEMENT
 //==============================================================================
 
