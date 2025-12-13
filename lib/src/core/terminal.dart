@@ -140,7 +140,7 @@ abstract interface class TerminalListener {
   void keyboardInput(KeyboardInput input) {}
 
   /// Called when there is any input.
-  void rawInput(RawTerminalInput input, bool wasAlreadyProcessed) {}
+  void rawInput(RawTerminalInput input, bool wasFullyProcessed) {}
 
   /// Called when the terminal receives a system signal.
   void signal(AllowedSignal signal) {}
@@ -156,7 +156,7 @@ abstract interface class TerminalListener {
   factory TerminalListener({
     void Function(Size) onScreenResize,
     void Function(KeyboardInput) onKeyboardInput,
-    void Function(RawTerminalInput input, bool wasAlreadyProcessed) onRawInput,
+    void Function(RawTerminalInput input, bool wasFullyProcessed) onRawInput,
     void Function(bool) onFocusChange,
     void Function(String) onInput,
     void Function(MouseEvent) onMouseEvent,
@@ -167,7 +167,7 @@ abstract interface class TerminalListener {
 class _LambdaTerminalListener implements TerminalListener {
   void Function(KeyboardInput) onKeyboardInput;
   // ignore: avoid_positional_boolean_parameters
-  void Function(RawTerminalInput input, bool wasAlreadyProcessed) onRawInput;
+  void Function(RawTerminalInput input, bool wasFullyProcessed) onRawInput;
   void Function(bool) onFocusChange;
   void Function(String) onInput;
   void Function(MouseEvent) onMouseEvent;
@@ -191,8 +191,8 @@ class _LambdaTerminalListener implements TerminalListener {
   void keyboardInput(KeyboardInput input) => onKeyboardInput(input);
 
   @override
-  void rawInput(RawTerminalInput input, bool wasAlreadyProcessed) =>
-      onRawInput(input, wasAlreadyProcessed);
+  void rawInput(RawTerminalInput input, bool wasFullyProcessed) =>
+      onRawInput(input, wasFullyProcessed);
 
   @override
   void focusChange(bool isFocused) => onFocusChange(isFocused);
@@ -205,4 +205,24 @@ class _LambdaTerminalListener implements TerminalListener {
 
   @override
   void signal(AllowedSignal signal) => onSignal(signal);
+}
+
+class DefaultTerminalListener implements TerminalListener {
+  @override
+  void focusChange(bool isFocused) {}
+
+  @override
+  void keyboardInput(KeyboardInput controlCharacter) {}
+
+  @override
+  void mouseEvent(MouseEvent event) {}
+
+  @override
+  void rawInput(RawTerminalInput input, bool wasFullyProcessed) {}
+
+  @override
+  void screenResize(Size size) {}
+
+  @override
+  void signal(AllowedSignal signal) {}
 }

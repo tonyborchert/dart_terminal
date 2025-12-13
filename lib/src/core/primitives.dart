@@ -306,7 +306,7 @@ final class PasteTextInput extends KeyboardInput {
 
   PasteTextInput(
     this.rawStringRepresentation, {
-    required this.fromBracketedPaste,
+    this.fromBracketedPaste = false,
   });
 
   // TODO: maybe sanitize?
@@ -503,12 +503,12 @@ enum Key {
   String? get whiteSpace => isWhitespace ? _printable! : null;
 
   Offset? get direction => switch (this) {
-    Key.arrowUp => const Offset(0, 1),
-    Key.arrowDown => const Offset(0, -1),
+    Key.arrowUp => const Offset(0, -1),
+    Key.arrowDown => const Offset(0, 1),
     Key.arrowLeft => const Offset(-1, 0),
     Key.arrowRight => const Offset(1, 0),
-    Key.pageUp => const Offset(0, 1),
-    Key.pageDown => const Offset(0, -1),
+    Key.pageUp => const Offset(0, -1),
+    Key.pageDown => const Offset(0, 1),
     _ => null,
   };
 
@@ -525,13 +525,13 @@ enum Key {
 
   factory Key.F(int number) {
     assert(1 <= number && number <= 12);
-    return Key.values[number + 35];
+    return Key.values[number + F1.index];
   }
 
   /// get letter from 0-25
   factory Key.letter(int letter) {
     assert(0 <= letter && letter <= 25);
-    return Key.values[letter];
+    return Key.values[letter + Key.a.index];
   }
 
   factory Key.digit(int digit, {bool keypad = false}) {
@@ -595,6 +595,16 @@ final class KeyStroke extends KeyboardInput {
     }
     final key = Key.tryGetAsciiKey(codeUnit);
     return key != null ? KeyStroke(key, isShiftPressed: isShiftPressed) : null;
+  }
+
+  @override
+  String toString() {
+    final modifiers = [
+      if (isCtrlPressed) 'Ctrl',
+      if (isMetaPressed) 'Meta',
+      if (isShiftPressed) 'Shift',
+    ];
+    return 'KeyStroke(${modifiers.isNotEmpty ? '${modifiers.join('+')}+' : ''}${key.toString()})';
   }
 }
 
@@ -719,7 +729,7 @@ abstract final class KeyStrokes {
 }
 
 class RawTerminalInput {
-  final List<int> data;
+  final List<int>? data;
   final String? encodedData;
 
   RawTerminalInput(this.data, this.encodedData);
