@@ -717,3 +717,10 @@ abstract final class KeyStrokes {
   static const pageUp = KeyStroke(Key.pageUp);
   static const pageDown = KeyStroke(Key.pageDown);
 }
+
+class RawTerminalInput {
+  final List<int> data;
+  final String? encodedData;
+
+  RawTerminalInput(this.data, this.encodedData);
+}
