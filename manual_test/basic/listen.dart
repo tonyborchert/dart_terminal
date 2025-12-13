@@ -27,7 +27,7 @@ class ControlTerminalInputListener implements TerminalListener {
   @override
   void rawInput(RawTerminalInput input, bool wasAlreadyProcessed) {
     if (wasAlreadyProcessed) return;
-    _print("input('$input')");
+    _print("input('${input.encodedData}')");
   }
 
   @override

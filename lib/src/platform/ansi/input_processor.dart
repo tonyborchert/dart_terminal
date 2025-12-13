@@ -54,7 +54,7 @@ Key keyFromChar(String char) {
 class InputProcessor {
   void Function(String input)? pasteListener;
 
-  void Function(String input)? inputListener;
+  void Function(String input)? charListener;
 
   void Function(MouseEvent mouseEvent)? mouseListener;
 
@@ -65,6 +65,8 @@ class InputProcessor {
   void Function(Position)? cursorPositionQueryListener;
 
   void Function(String)? unhandledControlSequenceListener;
+
+  void Function(String)? handledStringListener;
 
   void Function(DeviceAttributes)? deviceAttributesListener;
 
@@ -115,6 +117,8 @@ class InputProcessor {
         tryProcessCursorPositionAnswer(s) ||
         tryProcessMouseEvents(s, buf))) {
       processRestInput(s);
+    } else {
+      handledStringListener?.call(s);
     }
   }
 
@@ -501,10 +505,11 @@ class InputProcessor {
                 codeUnit == 0x7F) {
               // DELETE
               unhandledControlSequenceListener?.call(char);
-              continue;
+              // continue; TODO: why continue here?
             }
           }
-          inputListener?.call(char);
+          charListener?.call(char);
+          handledStringListener?.call(char);
         }
       }
     }
@@ -536,13 +541,22 @@ class InputProcessor {
     } else if (s == ' ' || s == '\x1b ') {
       key = Key.space;
       meta = (s.length == 2);
-    } else if (s.length == 1 && s.codeUnitAt(0) <= 0x1a) {
+    } else if (s.length == 1 && s.codeUnit <= 0x1a) {
       // ctrl+letter
-      if (s.codeUnitAt(0) == 0) {
+      if (s.codeUnit == 0) {
         key = Key.space;
       } else {
-        key = Key.letter(s.codeUnitAt(0) - 1);
+        key = Key.letter(s.codeUnit - 1);
       }
+      ctrl = true;
+    } else if (s.length == 1 && s.codeUnit >= 28 && s.codeUnit <= 31) {
+      // ctrl+letter
+      key = switch (s.codeUnit) {
+        28 => Key.backslash,
+        29 => Key.brace_right,
+        30 => Key.caret,
+        _ => Key.underscore,
+      };
       ctrl = true;
     } else if (s.length == 1 && s.codeUnit >= _0 && s.codeUnit <= _9) {
       // number (0-9)
@@ -843,6 +857,7 @@ class InputProcessor {
         isMetaPressed: meta,
       );
       keyStrokeListener?.call(stroke);
+      handledStringListener?.call(s);
       return true;
     }
     return false;

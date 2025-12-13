@@ -1,7 +1,9 @@
 // Dart imports:
 import 'dart:async' as async;
+import 'dart:io' as io;
 
 // Project imports:
+import 'package:characters/characters.dart';
 import 'package:dart_terminal/core.dart';
 import '../shared/native_terminal_image.dart';
 import '../shared/signals.dart';
@@ -15,8 +17,7 @@ import 'viewport.dart';
 class AnsiTerminalService extends TerminalService {
   final TerminalCapabilitiesDetector _capabilitiesDetector;
   final TerminalSizeTracker _sizeTracker;
-  final AnsiTerminalInputProcessor _inputProcessor =
-      AnsiTerminalInputProcessor.waiting();
+  final InputProcessor _inputProcessor = InputProcessor();
   final AnsiTerminalController _controller = AnsiTerminalController();
 
   final List<async.StreamSubscription<Object>> _subscriptions = [];
@@ -61,10 +62,24 @@ class AnsiTerminalService extends TerminalService {
     await _capabilitiesDetector.detect();
     _controller
       ..changeFocusTrackingMode(enable: true)
-      ..setInputMode(true); // TODO: was before set at the end
-    _inputProcessor
-      ..startListening()
-      ..listener = _onInputEvent;
+      ..setInputMode(enableRaw: true)
+      ..changeBracketedPasteMode(enable: true);
+    _inputProcessor..startListening(io.stdin);
+    _inputProcessor.pasteListener = (data) =>
+        listener?.keyboardInput(PasteTextInput(data, fromBracketedPaste: true));
+    _inputProcessor.charListener = (data) {
+      listener?.keyboardInput(UnicodeChar(data.characters));
+    };
+    _inputProcessor.mouseListener = (event) => listener?.mouseEvent(event);
+    _inputProcessor.unhandledControlSequenceListener = (data) =>
+        listener?.rawInput(RawTerminalInput(null, data), false);
+    _inputProcessor.handledStringListener = (data) =>
+        listener?.rawInput(RawTerminalInput(null, data), true);
+    _inputProcessor.keyStrokeListener = (keyStroke) =>
+        listener?.keyboardInput(keyStroke);
+    _inputProcessor.focusListener = (hasFocus) =>
+        listener?.focusChange(hasFocus);
+
     for (final signal in AllowedSignal.values) {
       _subscriptions.add(
         signal.processSignal().watch().listen((_) {
@@ -92,8 +107,9 @@ class AnsiTerminalService extends TerminalService {
       _viewport.deactivate();
     }
     _controller
-      ..setInputMode(false)
-      ..changeFocusTrackingMode(enable: false);
+      ..setInputMode(enableRaw: false)
+      ..changeFocusTrackingMode(enable: false)
+      ..changeBracketedPasteMode(enable: true);
   }
 
   @override
@@ -108,20 +124,6 @@ class AnsiTerminalService extends TerminalService {
     if (_viewport.isActive) return;
     super.viewPortMode();
     _viewport.activate();
-  }
-
-  void _onInputEvent(Object event) {
-    if (event is CursorPositionEvent) {
-      // nothing done as cursor position known at all times
-    } else if (event is String) {
-      listener?.input(event);
-    } else if (event is MouseEvent) {
-      listener?.mouseEvent(event);
-    } else if (event is ControlCharacter) {
-      listener?.controlCharacter(event);
-    } else if (event is FocusEvent) {
-      listener?.focusChange(event.isFocused);
-    }
   }
 
   void _onResizeEvent() {
