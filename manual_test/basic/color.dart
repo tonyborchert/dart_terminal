@@ -21,8 +21,8 @@ void main() async {
   }
 
   terminalService.listener = TerminalListener(
-    onControlCharacter: (c) async {
-      if ([ControlCharacter.ctrlC, ControlCharacter.ctrlZ].contains(c)) {
+    onKeyboardInput: (c) async {
+      if ([KeyStrokes.ctrlC, KeyStrokes.ctrlZ].contains(c)) {
         await terminalService.detach();
         exit(0);
       }

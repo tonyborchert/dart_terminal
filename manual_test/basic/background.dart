@@ -3,8 +3,8 @@ import 'package:dart_terminal/ansi.dart';
 void main() async {
   final terminalService = AnsiTerminalService.agnostic();
   terminalService.listener = TerminalListener(
-    onControlCharacter: (c) async {
-      if ([ControlCharacter.ctrlC, ControlCharacter.ctrlZ].contains(c)) {
+    onKeyboardInput: (c) async {
+      if ([KeyStrokes.ctrlC, KeyStrokes.ctrlZ].contains(c)) {
         await terminalService.detach();
       }
     },

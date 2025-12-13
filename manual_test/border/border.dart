@@ -1,12 +1,11 @@
 import 'dart:io';
 
 import 'package:dart_terminal/ansi.dart';
-import 'package:dart_terminal/src/platform/ansi/escape_codes.dart';
 
 class ExitListener extends DefaultTerminalListener {
   @override
-  void controlCharacter(ControlCharacter controlCharacter) async {
-    if (controlCharacter == ControlCharacter.ctrlZ) {
+  void keyboardInput(KeyboardInput controlCharacter) async {
+    if (controlCharacter == KeyStrokes.ctrlZ) {
       await service.detach();
       exit(0);
     }

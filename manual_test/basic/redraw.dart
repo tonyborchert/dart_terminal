@@ -4,8 +4,8 @@ import 'package:dart_terminal/ansi.dart';
 
 class ControlTerminalInputListener extends DefaultTerminalListener {
   @override
-  void controlCharacter(ControlCharacter controlCharacter) async {
-    if (controlCharacter == ControlCharacter.ctrlZ) {
+  void keyboardInput(KeyboardInput controlCharacter) async {
+    if (controlCharacter == KeyStrokes.ctrlZ) {
       await service.detach();
       exit(0);
     }
@@ -17,7 +17,10 @@ class ControlTerminalInputListener extends DefaultTerminalListener {
   void mouseEvent(MouseEvent event) {
     Position? motionPos;
     switch (event) {
-      case MouseScrollEvent(position: var pos, xScroll: var x, yScroll: var y):
+      case MouseScrollEvent(
+        vec: Offset(dx: var x, dy: var y),
+        position: var pos,
+      ):
         codePoint += x + y;
         for (int i = -10; i <= 10; i++) {
           for (int j = -10; j <= 10; j++) {
@@ -35,12 +38,12 @@ class ControlTerminalInputListener extends DefaultTerminalListener {
         }
       case MousePressEvent(buttonState: var t, position: var pos):
         motionPos = pos;
-        if (t == MouseButtonState.up) {
+        if (t == MouseButtonState.released) {
           isPressed = false;
         } else {
           isPressed = true;
         }
-      case MouseHoverEvent(position: var pos):
+      case MouseMotionEvent(position: var pos):
         motionPos = pos;
     }
     if (motionPos != null) {

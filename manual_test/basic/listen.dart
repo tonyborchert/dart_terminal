@@ -16,17 +16,18 @@ void _print(String nexText) {
 
 class ControlTerminalInputListener implements TerminalListener {
   @override
-  void controlCharacter(ControlCharacter controlCharacter) async {
+  void keyboardInput(KeyboardInput controlCharacter) async {
     _print("$controlCharacter;");
-    if (controlCharacter == ControlCharacter.ctrlZ) {
+    if (controlCharacter == KeyStrokes.ctrlZ) {
       await service.detach();
       exit(0);
     }
   }
 
   @override
-  void input(String s) {
-    _print("input('$s')");
+  void rawInput(RawTerminalInput input, bool wasAlreadyProcessed) {
+    if (wasAlreadyProcessed) return;
+    _print("input('$input')");
   }
 
   @override
@@ -57,14 +58,17 @@ class ControlTerminalInputListener implements TerminalListener {
         position: var pos,
       ):
         final bs = b.toString().substring(12);
-        if (t == MouseButtonState.down) {
+        if (t == MouseButtonState.pressed) {
           _print("press($bs,x:${pos.x},y:${pos.y})");
         } else {
           _print("release($bs,x:${pos.x},y:${pos.y})");
         }
-      case MouseScrollEvent(xScroll: var x, yScroll: var y, position: var pos):
+      case MouseScrollEvent(
+        vec: Offset(dx: var x, dy: var y),
+        position: var pos,
+      ):
         _print("scroll(scrollX:$x,scrollY:$y,x:${pos.x},y:${pos.y});");
-      case MouseHoverEvent(position: var pos):
+      case MouseMotionEvent(position: var pos):
         _print("motion(x:${pos.x},y:${pos.y})");
     }
   }

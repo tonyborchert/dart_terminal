@@ -7,16 +7,16 @@ void main() async {
   final v = terminalService.viewport;
 
   terminalService.listener = TerminalListener(
-    onControlCharacter: (c) async {
-      if ([ControlCharacter.ctrlC, ControlCharacter.ctrlZ].contains(c)) {
+    onKeyboardInput: (c) async {
+      if ([KeyStrokes.ctrlC, KeyStrokes.ctrlZ].contains(c)) {
         await terminalService.detach();
         exit(0);
       }
       final vec = switch (c) {
-        ControlCharacter.arrowUp => -e2,
-        ControlCharacter.arrowRight => e1,
-        ControlCharacter.arrowDown => e2,
-        ControlCharacter.arrowLeft => -e1,
+        KeyStrokes.arrowUp => -e2,
+        KeyStrokes.arrowRight => e1,
+        KeyStrokes.arrowDown => e2,
+        KeyStrokes.arrowLeft => -e1,
         _ => Offset.zero,
       };
       v.cursor = CursorState(position: v.cursor!.position + vec);

@@ -4,20 +4,20 @@ import 'package:dart_terminal/ansi.dart';
 
 class TextDecorationsListener extends DefaultTerminalListener {
   @override
-  void controlCharacter(ControlCharacter c) async {
-    if (c == ControlCharacter.ctrlZ) {
+  void controlCharacter(KeyStrokes c) async {
+    if (c == KeyStrokes.ctrlZ) {
       await service.detach();
       exit(0);
     }
-    if (c == ControlCharacter.ctrlA) {
+    if (c == KeyStrokes.ctrlA) {
       style += 1;
       paint();
     }
-    if (c == ControlCharacter.ctrlB) {
+    if (c == KeyStrokes.ctrlB) {
       style += 32;
       paint();
     }
-    if (c == ControlCharacter.ctrlS) {
+    if (c == KeyStrokes.ctrlS) {
       style -= 1;
       paint();
     }
