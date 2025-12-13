@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 
 // Project imports:
 import 'package:dart_terminal/core.dart' hide Size, Offset;
+import 'package:dart_terminal/core.dart' as dart_tui;
 import 'terminal_view.dart';
 
 /// Handles scrolling gestures in the alternate screen buffer. In alternate
@@ -61,7 +62,7 @@ class _TerminalScrollGestureHandlerState
   void _sendScrollEvent(bool up) {
     final position = widget.getCellOffset(lastPointerPosition);
     widget.terminalListener.mouseEvent(
-      MouseScrollEvent(false, false, false, position, 0, up ? -1 : 1),
+      MouseScrollEvent(position, dart_tui.Offset(0, up ? -1 : 1)),
     );
   }
 
@@ -238,7 +239,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
     // Check if the terminal should and can handle the tap down event.
     renderTerminal.mouseEvent(
       button,
-      MouseButtonState.down,
+      MouseButtonState.pressed,
       details.localPosition,
     );
   }
@@ -246,7 +247,7 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
   void _tapUp(TapUpDetails details, MouseButton button) {
     renderTerminal.mouseEvent(
       button,
-      MouseButtonState.up,
+      MouseButtonState.released,
       details.localPosition,
     );
   }
