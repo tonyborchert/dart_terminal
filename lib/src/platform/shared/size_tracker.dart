@@ -57,6 +57,7 @@ class NativeTerminalSizeDeterminer implements TerminalSizeDeterminer {
 }
 
 /// Tracks the size using the environment variables $COLUMNS and $LINES
+// TODO: Platform.environment does not change after start => find other way to read env variables
 class EnvironmentTerminalSizeDeterminer implements TerminalSizeDeterminer {
   Size determine() {
     final columns = int.tryParse(io.Platform.environment["COLUMNS"] ?? "") ?? 0;
