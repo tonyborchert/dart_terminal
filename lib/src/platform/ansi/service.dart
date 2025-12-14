@@ -71,7 +71,7 @@ class AnsiTerminalService extends TerminalService {
       listener?.keyboardInput(UnicodeChar(data.characters));
     };
     _inputProcessor.mouseListener = (event) => listener?.mouseEvent(event);
-    _inputProcessor.unhandledControlSequenceListener = (data) =>
+    _inputProcessor.unhandledListener = (data) =>
         listener?.rawInput(RawTerminalInput(null, data), false);
     _inputProcessor.handledStringListener = (data) =>
         listener?.rawInput(RawTerminalInput(null, data), true);
