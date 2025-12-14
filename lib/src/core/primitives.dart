@@ -519,7 +519,7 @@ enum Key {
     13 => carriageReturn,
     27 => escape,
     >= 32 && <= 64 => Key.values[codepoint - 32 + space.index],
-    >= 91 && <= 127 => Key.values[codepoint - 91 + brace_left.index],
+    >= 91 && <= 127 => Key.values[codepoint - 91 + bracket_left.index],
     _ => null,
   };
 
@@ -535,7 +535,7 @@ enum Key {
   }
 
   factory Key.digit(int digit, {bool keypad = false}) {
-    assert(0 <= digit && digit <= 10);
+    assert(0 <= digit && digit < 10);
     if (keypad) {
       return Key.values[digit + keypad_0.index];
     }
@@ -672,7 +672,8 @@ abstract final class KeyStrokes {
   static const ctrlE = KeyStroke(Key.e, isCtrlPressed: true);
   static const ctrlF = KeyStroke(Key.f, isCtrlPressed: true);
   static const ctrlG = KeyStroke(Key.g, isCtrlPressed: true); // Bell
-  static const ctrlH = KeyStroke(Key.h, isCtrlPressed: true); // Backspace
+  // often not possible (interpreted as backspace)
+  static const ctrlH = KeyStroke(Key.h, isCtrlPressed: true);
   // often not possible (interpreted as tab)
   static const ctrlI = KeyStroke(Key.i, isCtrlPressed: true);
   static const ctrlJ = KeyStroke(Key.j, isCtrlPressed: true);

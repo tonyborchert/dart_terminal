@@ -36,21 +36,6 @@ final _Z = "Z".codeUnit;
 final _0 = "0".codeUnit;
 final _9 = "9".codeUnit;
 
-Key keyFromChar(String char) {
-  assert(char.length == 1);
-  final codeUnit = char.codeUnit;
-  if (_0 <= codeUnit && codeUnit <= _9) {
-    return Key.digit(codeUnit - _0);
-  }
-  if (_a <= codeUnit && codeUnit <= _z) {
-    return Key.digit(codeUnit - _a);
-  }
-  if (_A <= codeUnit && codeUnit <= _Z) {
-    return Key.digit(codeUnit - _A);
-  }
-  throw ArgumentError();
-}
-
 class InputProcessor {
   void Function(String input)? pasteListener;
 
@@ -64,11 +49,13 @@ class InputProcessor {
 
   void Function(Position)? cursorPositionQueryListener;
 
-  void Function(String)? unhandledControlSequenceListener;
+  void Function(String)? unhandledListener;
 
   void Function(String)? handledStringListener;
 
   void Function(DeviceAttributes)? deviceAttributesListener;
+
+  bool awaitingCursorPositionAnswer = false;
 
   late Stream<List<int>> inputStream;
   late final async.StreamSubscription<List<int>> _inputStreamSubscription;
@@ -180,9 +167,11 @@ class InputProcessor {
   static final cursorPositionRe = RegExp(r'^\x1b\[(\d+);(\d+)R$');
 
   bool tryProcessCursorPositionAnswer(String s) {
+    if (!awaitingCursorPositionAnswer) return false;
     if (s.length < 6) return false;
     final match = cursorPositionRe.firstMatch(s);
     if (match == null) return false;
+    awaitingCursorPositionAnswer = false;
 
     final y = int.parse(match.group(1)!); // row
     final x = int.parse(match.group(2)!); // column
@@ -470,7 +459,7 @@ class InputProcessor {
     [
       functionKeyCodeReAnywhere.pattern,
       metaKeyCodeReAnywhere.pattern,
-      r'\x1b.', // any ESC + char
+      r'\x1b[\x00-\x7F]', // any ESC + char
     ].join('|'),
   );
 
@@ -485,7 +474,7 @@ class InputProcessor {
   void processRestInput(String s) {
     while (s.isNotEmpty) {
       final match = escapeCodeReAnywhere.firstMatch(s);
-      final beforeMatch = s.substring(0, match?.end);
+      final beforeMatch = s.substring(0, match?.start);
       if (match != null) {
         tryProcessKeyCode(match[0]!);
         s = s.substring(match.end);
@@ -493,7 +482,7 @@ class InputProcessor {
         s = "";
       }
       if (csiRe.hasMatch(beforeMatch)) {
-        unhandledControlSequenceListener?.call(beforeMatch);
+        unhandledListener?.call(beforeMatch);
         continue;
       }
       for (final char in Characters(beforeMatch)) {
@@ -504,7 +493,7 @@ class InputProcessor {
                 (codeUnit >= 0x80 && codeUnit <= 0x9F) || // C1
                 codeUnit == 0x7F) {
               // DELETE
-              unhandledControlSequenceListener?.call(char);
+              unhandledListener?.call(char);
               // continue; TODO: why continue here?
             }
           }
@@ -550,7 +539,7 @@ class InputProcessor {
       }
       ctrl = true;
     } else if (s.length == 1 && s.codeUnit >= 28 && s.codeUnit <= 31) {
-      // ctrl+letter
+      // ctrl+/,],^
       key = switch (s.codeUnit) {
         28 => Key.backslash,
         29 => Key.brace_right,
@@ -558,21 +547,59 @@ class InputProcessor {
         _ => Key.underscore,
       };
       ctrl = true;
+    } else if (s.length == 2 &&
+        s.codeUnitAt(0) == 0x1b &&
+        s.codeUnitAt(1) <= 0x1a) {
+      // meta+ctrl+letter
+      if (s.codeUnitAt(1) == 0) {
+        key = Key.space;
+      } else {
+        key = Key.letter(s.codeUnitAt(1) - 1);
+      }
+      ctrl = true;
+      meta = true;
+      if(key == Key.m) {
+        key = Key.enter;
+        ctrl = false;
+      }
+    } else if (s.length == 2 &&
+        s.codeUnitAt(0) == 0x1b &&
+        s.codeUnitAt(1) >= 28 &&
+        s.codeUnitAt(1) <= 31) {
+      // meta+ctrl+/,],^
+      key = switch (s.codeUnitAt(1)) {
+        28 => Key.backslash,
+        29 => Key.brace_right,
+        30 => Key.caret,
+        _ => Key.underscore,
+      };
+      ctrl = true;
+      meta = true;
     } else if (s.length == 1 && s.codeUnit >= _0 && s.codeUnit <= _9) {
       // number (0-9)
       key = Key.digit(s.codeUnit - _0);
     } else if (s.length == 1 && s.codeUnit >= _a && s.codeUnit <= _z) {
       // lowercase letter (a-z)
       key = Key.letter(s.codeUnit - _a);
+    } else if (s.length == 1 &&
+        ((s.codeUnit >= 33 && s.codeUnit <= 47) ||
+            (s.codeUnit >= 58 && s.codeUnit <= 64) ||
+            (s.codeUnit >= 91 && s.codeUnit <= 96) ||
+            (s.codeUnit >= 123 && s.codeUnit <= 126))) {
+      // punctuation (except whitespace)
+      key = Key.tryGetAsciiKey(s.codeUnit)!;
     } else if (s.length == 1 && s.codeUnit >= _A && s.codeUnit <= _Z) {
       // shift+letter (A-Z)
       key = Key.letter(s.codeUnit - _A);
       shift = true;
-    } else if ((match = metaKeyCodeRe.matchAsPrefix(s)) != null) {
+    } else if (s.length == 2 &&
+        s.codeUnitAt(0) == 0x1b &&
+        ((s.codeUnitAt(1) >= 32 && s.codeUnitAt(1) <= 126) ||
+            s.codeUnitAt(1) == 9)) {
       // meta+character key
-      key = keyFromChar(match![1]!);
+      key = Key.tryGetAsciiKey(s.toLowerCase().codeUnitAt(1))!;
       meta = true;
-      shift = RegExp(r'^[A-Z]$').hasMatch(match[1]!);
+      shift = RegExp(r'^[A-Z]$').hasMatch(s.substring(1));
     } else if ((match = functionKeyCodeRe.matchAsPrefix(s)) != null) {
       // ansi escape sequence
       // TODO: add keypad keys
@@ -598,15 +625,19 @@ class InputProcessor {
       switch (code) {
         /* xterm/gnome ESC O letter */
         case 'OP':
+        case '[P':
           key = Key.F1;
           break;
         case 'OQ':
+        case '[Q':
           key = Key.F2;
           break;
         case 'OR':
+        case '[R':
           key = Key.F3;
           break;
         case 'OS':
+        case '[S':
           key = Key.F4;
           break;
 
@@ -860,6 +891,7 @@ class InputProcessor {
       handledStringListener?.call(s);
       return true;
     }
+    unhandledListener?.call(s);
     return false;
   }
 }
