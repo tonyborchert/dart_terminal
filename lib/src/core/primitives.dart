@@ -279,6 +279,13 @@ final class MouseScrollEvent extends MouseEvent {
   }
 }
 
+/// Represents keyboard input events.
+///
+/// This is a sealed class with different implementations for various types
+/// of keyboard inputs:
+/// - [UnicodeChar]: Represents a single, non-ascii Unicode character input.
+/// - [KeyStroke]: Represents ascii or non-printable key inputs with modifiers.
+/// - [PasteTextInput]: Represents pasted text input.
 sealed class KeyboardInput {
   bool get isPrintable => stringRepresentation != null;
   String? get stringRepresentation;
@@ -286,9 +293,9 @@ sealed class KeyboardInput {
   const KeyboardInput();
 }
 
-// before: only one class instead of UnicodeChar and PasteTextInput: TextInput
-
+/// Represents a single Unicode character input from the keyboard.
 ///
+/// Contains the character and indicates that it is printable.
 final class UnicodeChar extends KeyboardInput {
   final Characters character;
   bool get isPrintable => true;
@@ -314,7 +321,7 @@ final class PasteTextInput extends KeyboardInput {
   String get stringRepresentation => rawStringRepresentation;
 }
 
-/// Keys that can be used in
+/// Keys that can be used in keyboard input.
 enum Key {
   // -- ASCII KEYS --
   carriageReturn("carriage return", "\r"),
@@ -543,6 +550,7 @@ enum Key {
   }
 }
 
+/// Represents an ascii or non-printable key input with optional modifier keys.
 final class KeyStroke extends KeyboardInput {
   final Key key;
   final bool isShiftPressed, isMetaPressed, isCtrlPressed;
@@ -608,6 +616,7 @@ final class KeyStroke extends KeyboardInput {
   }
 }
 
+/// Predefined common key strokes for easy access.
 abstract final class KeyStrokes {
   static const a = KeyStroke(Key.a);
   static const b = KeyStroke(Key.b);
@@ -729,6 +738,7 @@ abstract final class KeyStrokes {
   static const pageDown = KeyStroke(Key.pageDown);
 }
 
+/// Represents raw terminal input data.
 class RawTerminalInput {
   final List<int>? data;
   final String? encodedData;
