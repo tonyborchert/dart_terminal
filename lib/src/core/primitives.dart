@@ -308,11 +308,13 @@ final class UnicodeChar extends KeyboardInput {
 
 final class PasteTextInput extends KeyboardInput {
   final String rawStringRepresentation;
+  final String sanitizedStringRepresentation;
   final bool fromBracketedPaste;
   bool get isPrintable => true;
 
-  PasteTextInput(
-    this.rawStringRepresentation, {
+  PasteTextInput({
+    required this.rawStringRepresentation,
+    required this.sanitizedStringRepresentation,
     this.fromBracketedPaste = false,
   });
 

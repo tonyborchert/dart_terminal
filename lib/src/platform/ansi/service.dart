@@ -5,6 +5,7 @@ import 'dart:io' as io;
 // Project imports:
 import 'package:characters/characters.dart';
 import 'package:dart_terminal/core.dart';
+import 'package:dart_terminal/src/platform/ansi/strings/sanitize.dart';
 import '../shared/native_terminal_image.dart';
 import '../shared/signals.dart';
 import '../shared/size_tracker.dart';
@@ -65,8 +66,13 @@ class AnsiTerminalService extends TerminalService {
       ..setInputMode(enableRaw: true)
       ..changeBracketedPasteMode(enable: true);
     _inputProcessor..startListening(io.stdin);
-    _inputProcessor.pasteListener = (data) =>
-        listener?.keyboardInput(PasteTextInput(data, fromBracketedPaste: true));
+    _inputProcessor.pasteListener = (data) => listener?.keyboardInput(
+      PasteTextInput(
+        rawStringRepresentation: data,
+        sanitizedStringRepresentation: sanitize(data),
+        fromBracketedPaste: true,
+      ),
+    );
     _inputProcessor.charListener = (data) {
       listener?.keyboardInput(UnicodeChar(data.characters));
     };
@@ -173,4 +179,7 @@ class AnsiTerminalService extends TerminalService {
   @override
   void trySetTerminalSize(Size size) =>
       _controller.changeSize(size.width, size.height);
+
+  @override
+  String sanitizeInputString(String input) => sanitize(input);
 }

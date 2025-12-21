@@ -63,6 +63,11 @@ abstract class TerminalService {
 
   /// Triggers the terminal bell (audible or visible alert).
   void bell();
+
+  /// Sanitizes an input string to ensure it is safe for terminal display.
+  ///
+  /// Should be used to prevent injection of control characters by raw user input.
+  String sanitizeInputString(String input);
 }
 
 /// Represents the default terminal where one can print log messages
@@ -91,10 +96,7 @@ abstract class TerminalLogger {
   /// attribute is relative from the beginning of the status log.
   /// Further, the [CursorState.position]
   /// should be bounded to the current width of [size].
-  void setStatusLog(
-    TextSpan span,
-    CursorState? cursorState,
-  );
+  void setStatusLog(TextSpan span, CursorState? cursorState);
 
   /// Clears the complete terminal buffer,
   /// including output from previous commands.
