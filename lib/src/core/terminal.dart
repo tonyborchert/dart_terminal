@@ -65,19 +65,40 @@ abstract class TerminalService {
   void bell();
 }
 
+/// Represents the default terminal where one can print log messages
+/// and set a status log.
 abstract class TerminalLogger {
   bool get isActive => _isActive;
   bool _isActive = false;
 
-  int get width;
+  Size get size;
 
-  void deleteLastLine(int count);
+  /// Logs a message to the terminal.
+  ///
+  /// If the message does not end with a newline,
+  /// the next message will continue on the same line.
+  void log(TextSpan span);
 
-  void log(
-    String text, {
-    ForegroundStyle foregroundStyle,
-    Color backgroundColor,
-  });
+  /// The status log is rendered directly under the last log line
+  /// and often reflects what the user is currently doing,
+  /// for example showing progress or an input of the user.
+  ///
+  /// It is updated frequently (completely replacing the previous status log).
+  /// Often it makes sense to update the status log after a size change
+  /// to ensure it fits the new width.
+  ///
+  /// Of the [cursorState], the [CursorState.position]
+  /// attribute is relative from the beginning of the status log.
+  /// Further, the [CursorState.position]
+  /// should be bounded to the current width of [size].
+  void setStatusLog(
+    TextSpan span,
+    CursorState? cursorState,
+  );
+
+  /// Clears the complete terminal buffer,
+  /// including output from previous commands.
+  void clear();
 }
 
 /// Abstract class for terminal windows.
@@ -134,23 +155,24 @@ abstract class TerminalViewport implements TerminalCanvas {
 /// input, screen resizes, and signal interruptions.
 abstract interface class TerminalListener {
   /// Called when the terminal screen is resized.
-  void screenResize(Size size) {}
+  void screenResize(Size size);
 
   /// Called when there is (non mouse) input from the user that could be interpreted.
-  void keyboardInput(KeyboardInput input) {}
+  void keyboardInput(KeyboardInput input);
 
   /// Called when there is any input.
-  void rawInput(RawTerminalInput input, bool wasFullyProcessed) {}
+  void rawInput(RawTerminalInput input, bool wasFullyProcessed);
 
   /// Called when the terminal receives a system signal.
-  void signal(AllowedSignal signal) {}
+  @deprecated
+  void signal(AllowedSignal signal);
 
   /// Called for mouse events like clicks and movement.
   /// (only available in viewport mode)
   void mouseEvent(MouseEvent event) {}
 
   /// Called when the terminal gains or loses focus.
-  void focusChange(bool isFocused) {}
+  void focusChange(bool isFocused);
 
   /// Creates a delegate that forwards events to the provided handlers.
   factory TerminalListener({

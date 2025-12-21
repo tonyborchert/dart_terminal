@@ -402,6 +402,30 @@ class BorderCharSet {
   factory BorderCharSet.double() => BorderCharSet.raw('═║╔╗╚╝╬╩╦╣╠');
 }
 
+class TextSpan {
+  /// The text content of this span.
+  final String text;
+
+  /// The style applied to this text span
+  /// and as base style of its children if it has any.
+  final ForegroundStyle? style;
+
+  /// The background color applied to this text span
+  /// and as base style of its children if it has any.
+  final Color? backgroundColor;
+
+  /// Child text spans nested within this span.
+  ///
+  /// The children are always rendered with the style of this span
+  /// as the base style.
+  /// Further, the contents of the children are rendered after the content
+  /// of this span.
+  final List<TextSpan>? children;
+
+  /// Creates a [TextSpan] with the given values.
+  const TextSpan({this.text = "", this.style, this.backgroundColor, this.children});
+}
+
 Color toStandard(Color color) => switch (color._type) {
   colorBrightType => _extendedColors[color._data],
   colorExtendedType => _extendedColors[_extendedToStandardIndex(color._data)],
