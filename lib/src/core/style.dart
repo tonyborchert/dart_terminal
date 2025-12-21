@@ -1,4 +1,6 @@
 // Project imports:
+import 'package:characters/characters.dart';
+
 import 'terminal.dart' show Capability;
 
 /// Terminal color representation system supporting different color formats.
@@ -402,6 +404,96 @@ class BorderCharSet {
   factory BorderCharSet.double() => BorderCharSet.raw('═║╔╗╚╝╬╩╦╣╠');
 }
 
+const _abc123 =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+class AltGlyphSet {
+  /// The list of alternative glyphs in the order of ABC..XYZabc..xyz123..789.
+  ///
+  /// They are given as a list as these glyphs are often not in the BMP.
+  final List<String> glyphs;
+
+  AltGlyphSet.raw(this.glyphs) : assert(glyphs.length == _abc123.length);
+
+  AltGlyphSet(String glyphString)
+    : this.raw(glyphString.characters.toList(growable: false));
+
+  AltGlyphSet.onlyAlphabet(String glyphString)
+    : this.raw(
+        glyphString.characters.toList(growable: false) + "0123456789".split(""),
+      );
+
+  AltGlyphSet.onlyNumbers(String glyphString)
+    : this.raw(
+        "abcdefghijklmnopqrstuvwxyz".split("") +
+            glyphString.characters.toList(growable: false),
+      );
+
+  AltGlyphSet removeNumbers() =>
+      AltGlyphSet.onlyAlphabet(glyphs.sublist(0, 52).join());
+
+  AltGlyphSet removeAlphabet() =>
+      AltGlyphSet.onlyNumbers(glyphs.sublist(52).join());
+
+  static final circledGlyphSet = AltGlyphSet(
+    "ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
+    "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ"
+    "①②③④⑤⑥⑦⑧⑨⑩",
+  );
+
+  static final boldGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭"
+    "𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇",
+  );
+
+  static final boldItalicGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝑨𝑩𝑪𝑫𝑬𝑭𝑮𝑯𝑰𝑱𝑲𝑳𝑴𝑵𝑶𝑷𝑸𝑹𝑺𝑻𝑼𝑽𝑾𝑿𝒀𝒁"
+    "𝒂𝒃𝒄𝒅𝒆𝒇𝒈𝒉𝒊𝒋𝒌𝒍𝒎𝒏𝒐𝒑𝒒𝒓𝒔𝒕𝒖𝒗𝒘𝒙𝒚𝒛",
+  );
+
+  static final scriptGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳℕ𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵"
+    "𝒶𝒷𝒸𝒹ℯ𝒻𝑔ℎ𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏",
+  );
+
+  static final frakturGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜𝔝"
+    "𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷",
+  );
+
+  static final doubleStruckGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ"
+    "𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫",
+  );
+
+  static final monospaceGlyphSet = AltGlyphSet.onlyAlphabet(
+    "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉"
+    "𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣",
+  );
+
+  static final emojiGlyphSet = AltGlyphSet(
+    "🅰️🅱️🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾️🅿️🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
+    "🅰️🅱️🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾️🅿️🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉"
+    "0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣",
+  );
+
+  static final enclosedGlyphSet = AltGlyphSet(
+    "🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"
+    "🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉"
+    "⓪①②③④⑤⑥⑦⑧⑨",
+  );
+
+  // q does not exist
+  static final superscriptGlyphSet = AltGlyphSet(
+    "ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂXʸᶻ"
+    "ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖqʳˢᵗᵘᵛʷˣʸᶻ"
+    "⁰¹²³⁴⁵⁶⁷⁸⁹",
+  );
+
+  // most letters don not exist
+  static final subscriptGlyphSet = AltGlyphSet.onlyNumbers("₀₁₂₃₄₅₆₇₈₉");
+}
+
 class TextSpan {
   /// The text content of this span.
   final String text;
@@ -423,7 +515,12 @@ class TextSpan {
   final List<TextSpan>? children;
 
   /// Creates a [TextSpan] with the given values.
-  const TextSpan({this.text = "", this.style, this.backgroundColor, this.children});
+  const TextSpan({
+    this.text = "",
+    this.style,
+    this.backgroundColor,
+    this.children,
+  });
 }
 
 Color toStandard(Color color) => switch (color._type) {
